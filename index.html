@@ -1,112 +1,195 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Colorful Sign In / Sign Up</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rapido-style Taxi Demo</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #74ebd5, #9face6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .container {
-      background-color: rgb(255, 255, 255);
-      width: 400px;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      transition: all 0.5s ease;
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      margin-top: 20px;
-    }
-    input {
-      padding: 12px;
-      margin: 10px 0;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    button {
-      padding: 12px;
-      margin-top: 15px;
-      background: linear-gradient(to right, #667eea, #764ba2);
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: linear-gradient(to right, #5a67d8, #6b46c1);
-    }
-    .toggle {
-      text-align: center;
-      margin-top: 15px;
-      color: #666;
-    }
-    .toggle a {
-      color: #764ba2;
-      text-decoration: none;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #signUpForm {
-      display: none;
-    }
+    :root{--bg:#071425;--card:#0b2540;--accent:#ff7a59;--muted:#9fb3c8}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Arial}
+    body{margin:0;min-height:100vh;background:#041b2e;color:#e8f6ff}
+    header{padding:18px 22px;display:flex;align-items:center;gap:12px}
+    h1{margin:0;font-size:20px}
+
+    .container{display:grid;grid-template-columns:420px 1fr;gap:18px;padding:18px}
+    .card{background:#0b2540;border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+
+    label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
+    input[type=text]{width:100%;padding:10px 12px;margin-top:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#eaf6ff}
+
+    .big-btn{margin-top:12px;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600;background:linear-gradient(90deg,var(--accent),#ffd06b);color:#041226;box-shadow:0 8px 20px rgba(255,122,89,0.2);font-size:14px}
+    .big-btn:hover{transform:translateY(-3px)}
+
+    #map{height:78vh;border-radius:12px;border:1px solid rgba(255,255,255,0.1)}
+    .info{margin-top:12px;background:rgba(255,255,255,0.05);padding:12px;border-radius:10px}
+
+    .driverCard{display:flex;gap:12px;align-items:center;margin-bottom:14px;padding:10px;background:#102b46;border-radius:10px}
+    .driverCard img{width:70px;height:50px;object-fit:cover;border-radius:8px}
+    .small{font-size:13px;color:var(--muted)}
+    .fare{font-size:18px;font-weight:700;color:#fff}
+
+    footer{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+
+    @media(max-width:920px){.container{grid-template-columns:1fr;} #map{height:56vh}}
   </style>
 </head>
 <body>
+  <header>
+    <h1>Taxi Demo — Rapido style (demo)</h1>
+  </header>
+  <main class="container">
+    <section class="card">
+      <p class="small">Start aur Destination type karein (address ya city). Ya map par click karein.</p>
 
-<div class="container" id="signInForm">
-  <h2>Sign In</h2>
-  <form>
-    <input type="email" placeholder="Email" required />
-    <input type="password" placeholder="Password" required />
-    <button type="submit">Login</button>
-  </form>
-  <div class="toggle">
-    Don't have an account? <a onclick="toggleForms()">Sign Up</a>
-  </div>
-</div>
+      <label>Start</label>
+      <input id="startInput" type="text" placeholder="Delhi, Mumbai, etc" />
 
-<div class="container" id="signUpForm">
-  <h2>Create Account</h2>
-  <form>
-    <input type="text" placeholder="Full Name" required />
-    <input type="email" placeholder="Email" required />
-    <input type="password" placeholder="Password" required />
-    <button type="submit">Register</button>
-  </form>
-  <div class="toggle">
-    Already have an account? <a onclick="toggleForms()">Sign In</a>
-  </div>
-</div>
+      <label>Destination</label>
+      <input id="destInput" type="text" placeholder="Noida, Pune, etc" />
 
-<script>
-  function toggleForms() {
-    const signIn = document.getElementById('signInForm');
-    const signUp = document.getElementById('signUpForm');
-    signIn.style.display = signIn.style.display === 'none' ? 'block' : 'none';
-    signUp.style.display = signUp.style.display === 'block' ? 'none' : 'block';
-  }
-</script>
+      <button id="calcBtn" class="big-btn">Drivers Dikhaye</button>
+      <div class="info" id="result" style="display:none">
+        <h3>Available Drivers (Low → High Fare)</h3>
+        <div id="driverList"></div>
+      </div>
+    </section>
 
+    <section>
+      <div id="map" class="card"></div>
+    </section>
+  </main>
+  <footer>Demo site — type city/address ya map click karein. Fare calculate hoga.</footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Sample drivers
+    const drivers = [
+      {name:'Ramesh', car:'Suzuki Swift', plate:'GJ01AB1234', type:'Car', rateModifier:1.0, photo:'https://picsum.photos/seed/r1/200/120'},
+      {name:'Suresh', car:'Hero Splendor', plate:'MH12CD4321', type:'Bike', rateModifier:0.7, photo:'https://picsum.photos/seed/r2/200/120'},
+      {name:'Anita', car:'Hyundai i20', plate:'DL4CXY9988', type:'Car', rateModifier:1.05, photo:'https://picsum.photos/seed/r3/200/120'},
+      {name:'Kiran', car:'Bajaj Auto', plate:'PB10XY1111', type:'Auto', rateModifier:0.85, photo:'https://picsum.photos/seed/r4/200/120'},
+      {name:'Vikas', car:'Toyota Innova', plate:'UP16ZZ8899', type:'SUV', rateModifier:1.3, photo:'https://picsum.photos/seed/r5/200/120'}
+    ];
+
+    const map = L.map('map').setView([22.5726,88.3639], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+
+    let startMarker=null, destMarker=null, routeLine=null;
+
+    function setPoint(latlng, which){
+      if(which==='start'){
+        if(startMarker) map.removeLayer(startMarker);
+        startMarker = L.marker(latlng).addTo(map).bindPopup('Start').openPopup();
+        document.getElementById('startInput').dataset.lat = latlng.lat;
+        document.getElementById('startInput').dataset.lng = latlng.lng;
+      } else {
+        if(destMarker) map.removeLayer(destMarker);
+        destMarker = L.marker(latlng).addTo(map).bindPopup('Destination').openPopup();
+        document.getElementById('destInput').dataset.lat = latlng.lat;
+        document.getElementById('destInput').dataset.lng = latlng.lng;
+      }
+    }
+
+    function haversine(a,b){
+      const toRad = x=>x*Math.PI/180;
+      const R=6371;
+      const dLat=toRad(b.lat-a.lat), dLon=toRad(b.lng-a.lng);
+      const lat1=toRad(a.lat), lat2=toRad(b.lat);
+      const c=2*Math.atan2(Math.sqrt(Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2), Math.sqrt(1-(Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2)));
+      return R*c;
+    }
+
+    async function drawRoute(start,dest){
+      if(routeLine) map.removeLayer(routeLine);
+      const url=`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson`;
+      const res=await fetch(url);
+      const data=await res.json();
+      if(data.routes && data.routes[0]){
+        routeLine=L.geoJSON(data.routes[0].geometry,{color:'orange',weight:5}).addTo(map);
+      }
+    }
+
+    function showDrivers(distanceKm){
+      const res=document.getElementById('result');
+      const list=document.getElementById('driverList');
+      list.innerHTML='';
+
+      const base=30, perKm=12, speed=35;
+      const time=(distanceKm/speed)*60;
+
+      // har driver ke liye fare calculate
+      const withFare = drivers.map(d=>{
+        let fare=(base+perKm*distanceKm)*d.rateModifier;
+        fare += Math.max(0,Math.floor(time/5))*2;
+        fare=Math.round(fare);
+        return {...d, fare};
+      });
+
+      // sort low → high
+      withFare.sort((a,b)=>a.fare-b.fare);
+
+      withFare.forEach(driver=>{
+        const div=document.createElement('div');
+        div.className='driverCard';
+        div.innerHTML=`
+          <img src="${driver.photo}" alt="driver"/>
+          <div>
+            <div style="font-weight:700">${driver.name} — ${driver.car}</div>
+            <div class="small">Plate: ${driver.plate} | Type: ${driver.type}</div>
+            <div class="small">Rating: ★ 4.${Math.floor(Math.random()*10)}</div>
+            <div class="small">Distance: ${distanceKm.toFixed(2)} km | Time: ${Math.round(time)} min</div>
+            <div class="fare">₹${driver.fare}</div>
+            <button style="margin-top:6px" class="big-btn">Book</button>
+          </div>
+        `;
+        div.querySelector("button").onclick=()=>{
+          alert(`Taxi booked!\nDriver: ${driver.name}\nCar: ${driver.car} (${driver.plate})\nFare: ₹${driver.fare}\nDistance: ${distanceKm.toFixed(2)} km\nTime: ${Math.round(time)} min`);
+        };
+        list.appendChild(div);
+      });
+
+      res.style.display='block';
+    }
+
+    async function calculateFare(){
+      const s=document.getElementById('startInput');
+      const d=document.getElementById('destInput');
+      if(!(s.dataset.lat && d.dataset.lat)){ alert('Start & Destination set karein'); return; }
+      const start={lat:parseFloat(s.dataset.lat), lng:parseFloat(s.dataset.lng)};
+      const dest={lat:parseFloat(d.dataset.lat), lng:parseFloat(d.dataset.lng)};
+      const dist=haversine(start,dest);
+      showDrivers(dist);
+      await drawRoute(start,dest);
+      map.fitBounds([[start.lat,start.lng],[dest.lat,dest.lng]]);
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', calculateFare);
+
+    async function geocodePlace(place, which){
+      const url=`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`;
+      const res=await fetch(url); const data=await res.json();
+      if(data && data[0]){
+        const lat=parseFloat(data[0].lat), lng=parseFloat(data[0].lon);
+        setPoint({lat,lng}, which);
+        if(startMarker && destMarker) calculateFare();
+      } else alert("Location not found: "+place);
+    }
+
+    document.getElementById('startInput').addEventListener('keypress',e=>{
+      if(e.key==='Enter') geocodePlace(e.target.value,'start');
+    });
+    document.getElementById('destInput').addEventListener('keypress',e=>{
+      if(e.key==='Enter') geocodePlace(e.target.value,'dest');
+    });
+
+    let clickCount=0;
+    map.on('click', e=>{
+      clickCount++;
+      if(clickCount%2===1) setPoint(e.latlng,'start');
+      else setPoint(e.latlng,'dest');
+      if(startMarker && destMarker) calculateFare();
+    });
+  </script>
 </body>
 </html>
